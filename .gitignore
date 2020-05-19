@@ -1,0 +1,20 @@
+# Ignore all
+*
+
+# Unignore all with extensions
+!*.*
+
+# Unignore all dirs
+!*/
+# Ignore all
+*
+
+# Unignore all with extensions
+!*.cpp
+!*.h
+!*.py
+!*.md
+# Unignore all dirs
+!*/
+
+!.gitignore
