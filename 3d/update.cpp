@@ -160,25 +160,6 @@ Compute the element wise product of 2 vectors of double
     }
 }
 
-void recompute_epitaxy(unsigned char* lat, int* epi, int xo, int yo, int zo, const int mx, const int my, const int mz) {
-/*Update the epitaxial array by scanning the whole simulation box
- */
-    unsigned char atom;
-    bool found_surface = false;
-    for(int ez=mz-1;ez>=0;ez--){
-        atom = lat[xo*my*mz+mz*yo+ez];
-        if( atom >=1) {
-            if(found_surface) {
-                lat[xo*my*mz+mz*yo+ez] = 1;
-            } else {
-                lat[xo*my*mz+mz*yo+ez] = 2;
-                epi[xo*my+yo] = ez;
-                found_surface=true;
-            }
-        }
-    }
-
-}
 
 
 double update_lattice(unsigned char* lat, int* epi, float* arr,std::vector<double> &rates, std::vector<double> &c_rates,std::unordered_map<float, std::vector<int>> &dict,
@@ -364,8 +345,8 @@ case 25:
         lat[xo*my*mz+yo*mz+zo] = fxy;
         lat[xf*my*mz+yf*mz+zf] = lxy;
 
-        recompute_epitaxy(lat, epi, xo,yo,zo,mx,my,mz);
-        recompute_epitaxy(lat, epi, xf,yf,zf,mx,my,mz);
+        recompute_epitaxy(lat, epi, xo,yo,mx,my,mz);
+        recompute_epitaxy(lat, epi, xf,yf,mx,my,mz);
         /*
 
         if(lxy == 2 ) {

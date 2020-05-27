@@ -59,20 +59,21 @@ printf("Writing lattice to %s...\n", filename.c_str());
 }
 
 int main(void) {
-    const int mx = 128; // Dimension X
-    const int my = 128; // Dimension Y
-    const int mz = 128; // Dimension Z
+    const int mx = 32; // Dimension X
+    const int my = 32; // Dimension Y
+    const int mz = 48; // Dimension Z
     const int n = 26;  // Number of neighbours for annealing
     const float beta = 1.5; // Inverse of kT
-    float epi_rate = 0; // Epitaxial rate
+    float epi_rate = std::exp(-8); // Epitaxial rate
 
-    int niter = 500000; // Number of iterations
+    int niter = 200000; // Number of iterations
     double t = 0.0;
     float dt, e; 
     int step = (int) round(niter/10)-1;
     int f_step = (int) round(niter/10)-1;
     int nf =0;
-    bool wf = true;
+
+    bool wf = false;
     std::string base_file_name = "./output_files/iter_";
 
     unsigned char* box = new unsigned char[mx*my*mz];

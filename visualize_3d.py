@@ -22,7 +22,7 @@ def plot_viz(ff, output_name):
     ff = ff[:,:,:]
     tod = ff >0
     colors = np.empty(tod.shape, dtype=object)
-    colors[ff==2] = 'blue'
+    colors[ff==2] = 'green'
     colors[ff==1] = 'blue'
     #colors[ff==0] = 'yellow'
     ax.voxels(tod,facecolors=colors, edgecolor='k')

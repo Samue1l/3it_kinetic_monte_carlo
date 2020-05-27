@@ -3,25 +3,22 @@ void init_lat(unsigned char* lat, const int mx, const int my, const int mz) {
     /*
     Fill the lat array with the original morphology
     */
-    double v, p;
+    double v;
+    const double porosity_init = 0.25;
     unsigned char site;
+
 
     for(int i =0; i<mx;i++){
         for(int j=0; j<my;j++){
             for(int k=0; k<mz; k++) {
 
             v= unif(rng);
-            
-            if(k>10 && k<30) {
-                site = v > 0.5 ? 1:0;
-            } else if( k >= (30)) {
-                site = v > 0.23 ? 1:0;;
+            if(k>30){
+                site = 0;
             } else {
-                site=1;
+                site = v > porosity_init ? 1:0;
             }
             
-           
-
             lat[i*my*mz+ j*mz + k] = site;
         }
         }
@@ -138,6 +135,26 @@ float* init_rates(unsigned char* lat, const int mx, const int my, const int mz, 
     return arr;
 }
 
+void recompute_epitaxy(unsigned char* lat, int* epi, int xo, int yo, const int mx, const int my, const int mz) {
+/*Update the epitaxial array by scanning from top to bottom at (xo, yo)
+ */
+    unsigned char atom;
+    bool found_surface = false;
+    for(int ez=mz-1;ez>=0;ez--){
+        atom = lat[xo*my*mz+mz*yo+ez];
+        if( atom >=1) {
+            if(found_surface) {
+                lat[xo*my*mz+mz*yo+ez] = 1;
+            } else {
+                lat[xo*my*mz+mz*yo+ez] = 2;
+                epi[xo*my+yo] = ez;
+                found_surface=true;
+            }
+        }
+    }
+
+}
+
 void init_epitaxy(unsigned char* lat, float* arr, int* epi, float epitaxial_rate, const int mx, const int my, const int mz, const int n) {
     /*
     Compute the rates for the deposition sites
@@ -146,7 +163,9 @@ void init_epitaxy(unsigned char* lat, float* arr, int* epi, float epitaxial_rate
     for(int x=0;x<mx;x++){
         for(int y=0; y<my;y++){
             arr[n*mx*my*mz + x*my+ y] = 0.0f; //Fill with 0
+            recompute_epitaxy(lat, epi, x, y, mx, my, mz);
             for(int z=0; z<mz; z++){
+                
                 atom = lat[x*my*mz + y*mz + z];
                 if(atom == 2) {
                     epi[x*my+y] = z;
