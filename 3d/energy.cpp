@@ -24,7 +24,7 @@ float compute_energy(unsigned char* lat, int x, int y, int z, const int mx, cons
     Compute the energy of a particule
     */
     float e = 0.0f;
-    float Eb = 1.6e-19; // eV
+    float Eb = 1.0; // eV
     float anisotropy_coeff;
     
     auto x_neighbour = get_energy_neighbourhood(x);
