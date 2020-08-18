@@ -41,6 +41,7 @@ Update the transition array and mapping for an atom at position x,y,z
     float rate, old_rate;
     std::vector<int>* trans_idx;
 
+    const double prefactor = 1e12;
     auto x_neighbour = get_neighbourhood(x);
     auto y_neighbour = get_neighbourhood(y);
     auto z_neighbour = get_neighbourhood(z);
@@ -60,9 +61,9 @@ Update the transition array and mapping for an atom at position x,y,z
 
                         float e_final = compute_energy(lat, ex, ey, ez, mx, my, mz);
                         if(v_reduced==1){
-                            rate = std::min(1.0, 0.5*std::exp(beta*(e_init-e_final))); // Divided by 2 because the rates go both ways
+                            rate = prefactor*std::min(1.0, 0.5*std::exp(beta*(e_init-e_final))); // Divided by 2 because the rates go both ways
                         } else {
-                            rate = std::min(1.0, 0.5*std::exp(beta*(e_final-e_init)));
+                            rate = prefactor*std::min(1.0, 0.5*std::exp(beta*(e_final-e_init)));
                         }
                         int idx = n*(x*mz*my+y*mz+z) + sub_idx;
                         old_rate = arr[idx];
@@ -347,26 +348,7 @@ case 25:
 
         recompute_epitaxy(lat, epi, xo,yo,mx,my,mz);
         recompute_epitaxy(lat, epi, xf,yf,mx,my,mz);
-        /*
-
-        if(lxy == 2 ) {
-            int zeo = (zo-1+mz)%mz;
-            int zef = (zf-1+mz)%mz;
-            lat[xo*my*mz+yo*mz+zeo] = 2;
-            lat[xf*mz*my+yf*mz+zef] = 1;
-
-            epi[xo*my+yo] = zeo;
-            epi[xf*my+yf] = zef;
-        } else if (fxy==2) {
-            int zeo = (zo-1+mz)%mz;
-            int zef = (zf-1+mz)%mz;
-            lat[xo*my*mz+yo*mz+zeo] = 1;
-            lat[xf*mz*my+yf*mz+zef] = 2;
-
-            epi[xo*my+yo] = zeo;
-            epi[xf*my+yf] = zef;
-        }
-*/
+        
         recompute_rates(lat,arr,xo,yo,zo,rates,c_rates,dict,mx,my,mz,beta,n);
         recompute_rates(lat,arr,xf,yf,zf,rates,c_rates,dict,mx,my,mz,beta,n);
 

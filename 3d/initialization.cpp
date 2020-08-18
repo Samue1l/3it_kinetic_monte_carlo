@@ -4,8 +4,17 @@ void init_lat(unsigned char* lat, const int mx, const int my, const int mz) {
     Fill the lat array with the original morphology
     */
     double v;
-    const double porosity_init = 0.25;
     unsigned char site;
+
+    const float R1 = 8;
+    const float R2 = 5;
+
+    const int yc1 = 32;
+    const int xc1 = 13;
+
+    const int yc2 = 20;
+    const int xc2 = 32;
+    const int h_floor = 7;
 
 
     for(int i =0; i<mx;i++){
@@ -13,12 +22,19 @@ void init_lat(unsigned char* lat, const int mx, const int my, const int mz) {
             for(int k=0; k<mz; k++) {
 
             v= unif(rng);
-            if(k>30){
-                site = 0;
+            bool in1 = pow(i-xc1,2) + pow(j-yc1,2) <= pow(R1,2);
+            bool in2 = pow(i-xc2,2) + pow(j-yc2,2) <= pow(R2,2);
+
+
+            if(k<h_floor) {
+                site = 1;
+
+            } else if (k==h_floor && (in1 || in2) ) {
+                site = 1;
             } else {
-                site = v > porosity_init ? 1:0;
+                site = 0;
             }
-            
+
             lat[i*my*mz+ j*mz + k] = site;
         }
         }
@@ -71,10 +87,11 @@ void compute_rates(unsigned char* lat, float* arr, int x, int y, int z, const in
     Compute all the jump rates related to one particule (ex: if each particule has 6 neighbours there's 6 different jump rates)
     The rates are calculated both ways so they're divided by 2 in order to leave the total sum inchanged
 
-    A futur improvment would be to change the rates array to calculate only one rates per jump 
+    A futur improvment would be to change the rates array to calculate only one rates per jump
     */
     unsigned char v = lat[x*my*mz + y*mz + z];
     unsigned char v_reduced = v > 0 ? 1:0;
+    const double prefactor = 1e12;
 
     float rate;
 
@@ -97,9 +114,9 @@ void compute_rates(unsigned char* lat, float* arr, int x, int y, int z, const in
 
                     float e_final = compute_energy(lat, ex, ey, ez, mx, my, mz);
                     if(v_reduced==1){
-                        rate = std::min(1.0, 0.5*std::exp(beta*(e_init-e_final))); // Divided by 2 because the rates go both ways
+                        rate = prefactor*std::min(1.0, 0.5*std::exp(beta*(e_init-e_final))); // Divided by 2 because the rates go both ways
                     } else {
-                        rate = std::min(1.0, 0.5*std::exp(beta*(e_final-e_init)));
+                        rate = prefactor*std::min(1.0, 0.5*std::exp(beta*(e_final-e_init)));
                     }
                     int idx =  n*(x*mz*my+y*mz+z) + sub_idx;
                     arr[idx] = rate;
@@ -135,15 +152,35 @@ float* init_rates(unsigned char* lat, const int mx, const int my, const int mz, 
     return arr;
 }
 
+
+bool is_in_epi_zone(int x, int y) {
+    bool is_in;
+    int xcenter = 16;
+    int ycenter = 16;
+    int radius = 4;
+
+    if( pow(x-xcenter,2) + pow(y-ycenter,2) <= pow(radius,2) ){
+        is_in=true;
+    } else {
+        is_in=false;
+    }
+
+    return is_in;
+
+}
+
 void recompute_epitaxy(unsigned char* lat, int* epi, int xo, int yo, const int mx, const int my, const int mz) {
 /*Update the epitaxial array by scanning from top to bottom at (xo, yo)
  */
     unsigned char atom;
     bool found_surface = false;
+    //    bool is_in = is_in_epi_zone(xo,yo);
+    bool is_in = true;
+
     for(int ez=mz-1;ez>=0;ez--){
         atom = lat[xo*my*mz+mz*yo+ez];
         if( atom >=1) {
-            if(found_surface) {
+            if(found_surface || is_in == false) {
                 lat[xo*my*mz+mz*yo+ez] = 1;
             } else {
                 lat[xo*my*mz+mz*yo+ez] = 2;
@@ -155,6 +192,7 @@ void recompute_epitaxy(unsigned char* lat, int* epi, int xo, int yo, const int m
 
 }
 
+
 void init_epitaxy(unsigned char* lat, float* arr, int* epi, float epitaxial_rate, const int mx, const int my, const int mz, const int n) {
     /*
     Compute the rates for the deposition sites
@@ -163,15 +201,17 @@ void init_epitaxy(unsigned char* lat, float* arr, int* epi, float epitaxial_rate
     for(int x=0;x<mx;x++){
         for(int y=0; y<my;y++){
             arr[n*mx*my*mz + x*my+ y] = 0.0f; //Fill with 0
+
             recompute_epitaxy(lat, epi, x, y, mx, my, mz);
             for(int z=0; z<mz; z++){
-                
+
                 atom = lat[x*my*mz + y*mz + z];
                 if(atom == 2) {
                     epi[x*my+y] = z;
                     arr[n*mx*my*mz + x*my+ y] = epitaxial_rate;
                 }
             }
+
         }
     }
 }

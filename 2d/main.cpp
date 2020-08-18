@@ -31,6 +31,7 @@ int get_count(unsigned char* lat, const int mx, const int my) {
     return count;
 }
 
+
 void write_lat(unsigned char* lat, std::string filename, const int mx, const int my) {
 /*Write the disposition of the lattice to a text file
 */
@@ -98,6 +99,9 @@ int main(void) {
         if(i%step==0){
             e = get_total_energy(box, mx,my);
             printf("t: %.5f / Energy: %.1f\n",t,e );
+            std::string if_name = base_file_name + std::to_string(nf) + std::string(".txt");
+            write_lat(box, if_name, mx, my);
+            nf++;
         }
 
     }

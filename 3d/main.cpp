@@ -35,6 +35,40 @@ int get_count(unsigned char* lat, const int mx, const int my, const int mz) {
     return count;
 }
 
+float get_roughness(int* epi, const int mx, const int my) {
+    /*Compute the roughness of the (x,y) surface */
+    float roughness =0;
+    float mean_height =0;
+    const float lattice_constant = 0.543071;// Silicium in nanometers
+    for(int x=0;x<mx;x++){
+        for(int y=0;y<my;y++){
+            mean_height = epi[x*my+y] + mean_height;
+        }
+    }
+    mean_height = mean_height / (mx*my);
+    for(int x=0;x<mx;x++){
+        for(int y=0;y<my;y++){
+            roughness = pow(lattice_constant*(epi[x*my+y] - mean_height),2) + roughness;
+        }
+    }
+    roughness = sqrt(roughness) / (mx*my);
+    return roughness;
+
+}
+
+void log_roughness(std::string filename, int* epi , const int mx, const int my) {
+  std::ofstream f;
+  float r;
+
+  f.open(filename, std::ios_base::app);
+  if (f.is_open()) {
+    r = get_roughness(epi, mx, my);
+    f << r;
+    f << std::endl;
+    f.close();
+}
+}
+
 void write_lat(unsigned char* lat, std::string filename, const int mx, const int my, const int mz) {
 /*Write the disposition of the lattice to a text file
 */
@@ -58,32 +92,44 @@ printf("Writing lattice to %s...\n", filename.c_str());
   f.close();
 }
 
-int main(void) {
-    const int mx = 32; // Dimension X
-    const int my = 32; // Dimension Y
-    const int mz = 48; // Dimension Z
-    const int n = 26;  // Number of neighbours for annealing
-    const float beta = 1.5; // Inverse of kT
-    float epi_rate = std::exp(-8); // Epitaxial rate
+void clear_file(std::string filename){
+    std::ofstream f;
+    if (f.is_open()){
+        f.close();
+    }
+}
 
-    int niter = 200000; // Number of iterations
+int main(void) {
+    const int mx = 64; // Dimension X
+    const int my = 64; // Dimension Y
+    const int mz = 16; // Dimension Z
+    const int n = 26;  // Number of neighbours for annealing
+    const double k_boltzmann = 1.38064e-23;
+    const float temperature = 1500;
+    const float beta = 1/(k_boltzmann*temperature); // Inverse of kT
+//    float epi_rate = 1e12*exp(-10); // Epitaxial rate
+    float epi_rate = 0;
+
+    int niter = 10000000; // Number of iterations
     double t = 0.0;
-    float dt, e; 
+    float dt, e, r;
     int step = (int) round(niter/10)-1;
-    int f_step = (int) round(niter/10)-1;
+    int f_step = (int) round(niter/1000)-1;
+    int rstep = (int) round(niter/100)-1;
     int nf =0;
 
-    bool wf = false;
-    std::string base_file_name = "./output_files/iter_";
+    bool wf = true;
+    std::string base_file_name = "C:/Users/samue/Documents/annealing_simulation/3d/output_files/thierno/or_";
+    std::string roughness_file = "C:/Users/samue/Documents/annealing_simulation/3d/output_files/thierno/roughness.txt";
+    clear_file(roughness_file);
 
     unsigned char* box = new unsigned char[mx*my*mz];
     int* epi_height = new int[mx*my];
     std::vector<double> rates, c_rates;
     std::unordered_map<float, std::vector<int>> rate_dict;
-    srand(24101);
 
-    std::string ori = "./output_files/ori.txt";
-    std::string final_f = "./output_files/lat_128.txt";
+    std::string ori = " C:/Users/samue/Documents/annealing_simulation/3d/output_files/ori.txt";
+    std::string final_f = " C:/Users/samue/Documents/annealing_simulation/3d/output_files/lat_20.txt";
 
     printf("Initialising lattice and rates ----\n");
     init_lat(box, mx,my,mz);
@@ -96,7 +142,7 @@ int main(void) {
     init_dict(rate_dict, transit, size);
 
     printf("%d sites ----\n", mx*my*mz);
-    printf("Energy: %.1f -- Bulk sites: %d\n", get_total_energy(box,mx,my,mz), get_count(box,mx,my,mz));
+    printf("Energy: %.3e -- Bulk sites: %d\n", get_total_energy(box,mx,my,mz), get_count(box,mx,my,mz));
     write_lat(box, ori, mx, my, mz);
     auto t0 = std::chrono::high_resolution_clock::now();
 
@@ -106,8 +152,13 @@ int main(void) {
         t = t+dt;
         if(i%step==0){
             e = get_total_energy(box, mx,my,mz);
-            printf("t: %.5f / Energy: %.1f\n",t,e );
+            printf("t: %.3e / Energy: %.3e\n",t,e );
+            r = get_roughness(epi_height, mx, my);
+            printf("t: %.3e / Roughness: %.3e nm\n",t,r );
             //write_lat(box, final_f, mx, my, mz);
+        }
+        if(i%rstep ==0) {
+            log_roughness(roughness_file,epi_height, mx,my);
         }
 
         if(i%f_step==0 && wf) {
