@@ -105,7 +105,7 @@ int main(void) {
     const int mz = 16; // Dimension Z
     const int n = 26;  // Number of neighbours for annealing
     const double k_boltzmann = 1.38064e-23;
-    const float temperature = 1500;
+    const float temperature = 1800;
     const float beta = 1/(k_boltzmann*temperature); // Inverse of kT
 //    float epi_rate = 1e12*exp(-10); // Epitaxial rate
     float epi_rate = 0;
@@ -124,6 +124,8 @@ int main(void) {
     clear_file(roughness_file);
 
     unsigned char* box = new unsigned char[mx*my*mz];
+    unsigned char* copied_box = new unsigned char[mx*my*mz];
+
     int* epi_height = new int[mx*my];
     std::vector<double> rates, c_rates;
     std::unordered_map<float, std::vector<int>> rate_dict;
@@ -132,7 +134,7 @@ int main(void) {
     std::string final_f = " C:/Users/samue/Documents/annealing_simulation/3d/output_files/lat_20.txt";
 
     printf("Initialising lattice and rates ----\n");
-    init_lat(box, mx,my,mz);
+    init_lat(box,copied_box, mx,my,mz);
 
     float* transit = init_rates(box,mx,my,mz, beta,n);
     init_epitaxy(box, transit, epi_height, epi_rate, mx, my, mz, n);
@@ -148,7 +150,7 @@ int main(void) {
 
     // Update loop
     for(int i=0;i<niter;i++) {
-        dt = update_lattice(box, epi_height,transit, rates, c_rates, rate_dict, mx, my, mz, n, beta);
+        dt = update_lattice(box,copied_box, epi_height,transit, rates, c_rates, rate_dict, mx, my, mz, n, beta);
         t = t+dt;
         if(i%step==0){
             e = get_total_energy(box, mx,my,mz);
@@ -163,7 +165,7 @@ int main(void) {
 
         if(i%f_step==0 && wf) {
             std::string if_name = base_file_name + std::to_string(nf) + std::string(".txt");
-            write_lat(box, if_name, mx, my, mz);
+            write_lat(copied_box, if_name, mx, my, mz);
             nf++;
         }
     }

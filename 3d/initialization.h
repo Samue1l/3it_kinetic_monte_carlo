@@ -1,7 +1,7 @@
 #pragma once
 #include "libs.h"
 #include "energy.h"
-void init_lat(unsigned char* lat,  const int mx, const int my, const int mz);
+void init_lat(unsigned char* lat, unsigned char* copied_lat, const int mx, const int my, const int mz);
 
 void init_dict(std::unordered_map<float, std::vector<int>> &dict, float* rates, const int size);
 void compute_rates(unsigned char* lat, float* arr, int x, int y, int z, const int mx, const int my, const int mz, const float beta, const int n);

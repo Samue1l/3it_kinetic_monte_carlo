@@ -163,7 +163,7 @@ Compute the element wise product of 2 vectors of double
 
 
 
-double update_lattice(unsigned char* lat, int* epi, float* arr,std::vector<double> &rates, std::vector<double> &c_rates,std::unordered_map<float, std::vector<int>> &dict,
+double update_lattice(unsigned char* lat, unsigned char* copied_lat, int* epi, float* arr,std::vector<double> &rates, std::vector<double> &c_rates,std::unordered_map<float, std::vector<int>> &dict,
                              const int mx, const int my, const int mz, const int n, const float beta) {
 /* Update the lattice by choosing a transition and realizing it
 */
@@ -174,7 +174,7 @@ double update_lattice(unsigned char* lat, int* epi, float* arr,std::vector<doubl
     double R, chosen_rate;
     double dt;
     int size = mx*my*mz*n;
-    unsigned char lxy, fxy;
+    unsigned char lxy, fxy, clxy, cfxy;
 
     l_rates.reserve(rates.size());
     element_wise_product(rates,c_rates,l_rates);
@@ -346,9 +346,14 @@ case 25:
         lat[xo*my*mz+yo*mz+zo] = fxy;
         lat[xf*my*mz+yf*mz+zf] = lxy;
 
+        clxy = copied_lat[xo*my*mz+yo*mz+zo];
+        cfxy = copied_lat[xf*my*mz+yf*mz+zf];
+        copied_lat[xo*my*mz+yo*mz+zo] = cfxy;
+        copied_lat[xf*my*mz+yf*mz+zf] = clxy;
+
         recompute_epitaxy(lat, epi, xo,yo,mx,my,mz);
         recompute_epitaxy(lat, epi, xf,yf,mx,my,mz);
-        
+
         recompute_rates(lat,arr,xo,yo,zo,rates,c_rates,dict,mx,my,mz,beta,n);
         recompute_rates(lat,arr,xf,yf,zf,rates,c_rates,dict,mx,my,mz,beta,n);
 
@@ -365,6 +370,8 @@ case 25:
         }
         lat[xo*my*mz+yo*mz+zo] = 1;
         lat[xf*my*mz+yf*mz+zf] = 2;
+
+        copied_lat[xf*my*mz+yf*mz+zf] = 2;
         epi[xf*my + yf] = zf;
 
         recompute_rates(lat,arr,xo,yo,zo,rates,c_rates,dict,mx,my,mz,beta,n);

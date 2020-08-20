@@ -1,19 +1,25 @@
 #include "initialization.h"
-void init_lat(unsigned char* lat, const int mx, const int my, const int mz) {
+#include "Circle.h"
+
+
+void init_lat(unsigned char* lat, unsigned char* copied_lat, const int mx, const int my, const int mz) {
     /*
     Fill the lat array with the original morphology
     */
     double v;
-    unsigned char site;
+    unsigned char site, copied_site;
+    Circle c1(13, 32, 8.0);
+    Circle c2(32, 20, 5.0);
+    Circle c3(50, 50, 8.0);
 
-    const float R1 = 8;
-    const float R2 = 5;
-
-    const int yc1 = 32;
-    const int xc1 = 13;
-
-    const int yc2 = 20;
-    const int xc2 = 32;
+//    const float R1 = 8;
+//    const float R2 = 5;
+//
+//    const int yc1 = 32;
+//    const int xc1 = 13;
+//
+//    const int yc2 = 20;
+//    const int xc2 = 32;
     const int h_floor = 7;
 
 
@@ -22,20 +28,30 @@ void init_lat(unsigned char* lat, const int mx, const int my, const int mz) {
             for(int k=0; k<mz; k++) {
 
             v= unif(rng);
-            bool in1 = pow(i-xc1,2) + pow(j-yc1,2) <= pow(R1,2);
-            bool in2 = pow(i-xc2,2) + pow(j-yc2,2) <= pow(R2,2);
+//            bool in1 = pow(i-xc1,2) + pow(j-yc1,2) <= pow(R1,2);
+//            bool in2 = pow(i-xc2,2) + pow(j-yc2,2) <= pow(R2,2);
+            bool in1 = c1.is_in(i,j);
+            bool in2 = c2.is_in(i,j);
+            bool in3 = c3.is_in(i,j);
 
 
             if(k<h_floor) {
                 site = 1;
+                copied_site = 1;
 
-            } else if (k==h_floor && (in1 || in2) ) {
+            } else if (k==h_floor && (in1 || in2 || in3) ) {
                 site = 1;
+                if (in1) copied_site = 3;
+                if (in2) copied_site = 4;
+                if (in3) copied_site = 5;
+
             } else {
                 site = 0;
+                copied_site =0;
             }
 
             lat[i*my*mz+ j*mz + k] = site;
+            copied_lat[i*my*mz+ j*mz + k] = copied_site;
         }
         }
     }
