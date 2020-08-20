@@ -1,41 +1,58 @@
 #include "initialization.h"
-void init_lat(unsigned char* lat, const int mx, const int my, const int mz) {
+
+bool is_cyl(int xc, int yc, int zc, int depth, float radius, int x, int y, int z) {
+    bool is_in;
+    bool r_check = pow(y-yc,2)+pow(x-xc,2) <= pow(radius,2);
+
+    if(r_check && z< z+depth && z>=zc) {
+        return true;
+    } else {
+        return false;
+    }
+
+}
+
+void init_lat(unsigned char* lat, unsigned char* copied_lat, const int mx, const int my, const int mz) {
     /*
     Fill the lat array with the original morphology
     */
     double v;
     unsigned char site;
 
-    const float R1 = 8;
-    const float R2 = 5;
 
-    const int yc1 = 32;
-    const int xc1 = 13;
+    const int h_floor = 20;
 
-    const int yc2 = 20;
-    const int xc2 = 32;
-    const int h_floor = 7;
+    int xc1 = 10;
+    int yc1 = 10;
+    int R1 = 4;
+
+    int xc2 = 22;
+    int yc2 = 22;
+    int R2 = 4;
+
+    int zc = 4;
+    int depth = h_floor-zc;
 
 
     for(int i =0; i<mx;i++){
         for(int j=0; j<my;j++){
             for(int k=0; k<mz; k++) {
 
+            bool in1 = is_cyl(xc1,yc1,zc,depth, R1, i,j,k);
+            bool in2 = is_cyl(xc2,yc2,zc,depth, R2, i,j,k);
+
             v= unif(rng);
-            bool in1 = pow(i-xc1,2) + pow(j-yc1,2) <= pow(R1,2);
-            bool in2 = pow(i-xc2,2) + pow(j-yc2,2) <= pow(R2,2);
 
 
-            if(k<h_floor) {
+            if(k<h_floor && !in1 && !in2) {
                 site = 1;
 
-            } else if (k==h_floor && (in1 || in2) ) {
-                site = 1;
             } else {
                 site = 0;
             }
 
             lat[i*my*mz+ j*mz + k] = site;
+            copied_lat[i*my*mz+ j*mz + k] = site;
         }
         }
     }

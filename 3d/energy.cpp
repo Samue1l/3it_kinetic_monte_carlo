@@ -1,13 +1,13 @@
 
 #include "energy.h"
 
-std::array<int, 7> get_energy_neighbourhood(int p) {
+std::array<int, 5> get_energy_neighbourhood(int p) {
     /*
     Return the neighbourhood used to calculate the energy of a particule
     */
 //    std::array<int, 9> r_arr = {p-4, p-3, p-2, p-1, p, p+1, p+2, p+3, p+4};
-    std::array<int, 7> r_arr = {p-3, p-2,p-1, p, p+1, p+2, p+3};
-//    std::array<int, 5> r_arr = {p-2,p-1, p, p+1, p+2};
+//    std::array<int, 7> r_arr = {p-3, p-2,p-1, p, p+1, p+2, p+3};
+    std::array<int, 5> r_arr = {p-2,p-1, p, p+1, p+2};
     return r_arr;
 }
 
@@ -80,5 +80,5 @@ float compute_energy(unsigned char* lat, int x, int y, int z, const int mx, cons
         }
     }
 //    e= 125*e/nmax;
-    return 0.5*(124*e*Eb/Nmax-E0);
+    return e*Eb-E0;
 }
