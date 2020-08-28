@@ -11,6 +11,11 @@ void init_lat(unsigned char* lat, unsigned char* copied_lat, const int mx, const
     Circle c1(13, 32, 8.0);
     Circle c2(32, 20, 5.0);
     Circle c3(50, 50, 8.0);
+    Circle c4(50, 30, 4.0);
+
+    std::array<Circle* , 4> all_circles = {&c1,&c2,&c3,&c4};
+    bool checks[all_circles.size()];
+    bool any_circle;
 
 //    const float R1 = 8;
 //    const float R2 = 5;
@@ -28,22 +33,26 @@ void init_lat(unsigned char* lat, unsigned char* copied_lat, const int mx, const
             for(int k=0; k<mz; k++) {
 
             v= unif(rng);
+            any_circle = false;
 //            bool in1 = pow(i-xc1,2) + pow(j-yc1,2) <= pow(R1,2);
 //            bool in2 = pow(i-xc2,2) + pow(j-yc2,2) <= pow(R2,2);
-            bool in1 = c1.is_in(i,j);
-            bool in2 = c2.is_in(i,j);
-            bool in3 = c3.is_in(i,j);
 
+
+            for (int i_circle=0; i_circle<all_circles.size(); i_circle++){
+                checks[i_circle] = all_circles[i_circle]->is_in(i,j);
+                any_circle = any_circle || checks[i_circle];
+            }
 
             if(k<h_floor) {
                 site = 1;
                 copied_site = 1;
 
-            } else if (k==h_floor && (in1 || in2 || in3) ) {
+            } else if (k==h_floor && any_circle ) {
                 site = 1;
-                if (in1) copied_site = 3;
-                if (in2) copied_site = 4;
-                if (in3) copied_site = 5;
+                for (int i_circle=0; i_circle<all_circles.size(); i_circle++){
+                    if (checks[i_circle]) copied_site = i_circle +3;
+                }
+
 
             } else {
                 site = 0;

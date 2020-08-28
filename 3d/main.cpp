@@ -105,7 +105,7 @@ int main(void) {
     const int mz = 16; // Dimension Z
     const int n = 26;  // Number of neighbours for annealing
     const double k_boltzmann = 1.38064e-23;
-    const float temperature = 1800;
+    const float temperature = 1500;
     const float beta = 1/(k_boltzmann*temperature); // Inverse of kT
 //    float epi_rate = 1e12*exp(-10); // Epitaxial rate
     float epi_rate = 0;
@@ -120,6 +120,7 @@ int main(void) {
 
     bool wf = true;
     std::string base_file_name = "C:/Users/samue/Documents/annealing_simulation/3d/output_files/thierno/or_";
+//    std::string base_file_name = "C:/Users/samue/Documents/annealing_simulation/3d/output_files/thierno/test_";
     std::string roughness_file = "C:/Users/samue/Documents/annealing_simulation/3d/output_files/thierno/roughness.txt";
     clear_file(roughness_file);
 
